@@ -1,0 +1,39 @@
+import os
+import pickle
+import h5py
+import pandas as pd
+from tkinter import Tk, filedialog
+
+def convert_pkl_to_h5(pkl_file, h5_file):
+    # pklファイルを読み込む
+    with open(pkl_file, 'rb') as f:
+        data = pickle.load(f)
+    
+    # h5ファイルに書き込む
+    with h5py.File(h5_file, 'w') as hf:
+        if isinstance(data, pd.DataFrame):
+            # pandas DataFrameの場合
+            for column in data.columns:
+                hf.create_dataset(column, data=data[column].values)
+        else:
+            # その他のデータ形式の場合
+            hf.create_dataset('data', data=data)
+
+def main():
+    # ファイル選択ダイアログを表示
+    root = Tk()
+    root.withdraw()  # メインウィンドウを非表示にする
+    pkl_files = filedialog.askopenfilenames(title="Select PKL files", filetypes=[("PKL files", "*.pkl")])
+    
+    if not pkl_files:
+        print("No files selected.")
+        return
+    
+    # 選択されたpklファイルをh5ファイルに変換
+    for pkl_file in pkl_files:
+        h5_file = os.path.splitext(pkl_file)[0] + '.h5'
+        convert_pkl_to_h5(pkl_file, h5_file)
+        print(f"Converted {pkl_file} to {h5_file}")
+
+if __name__ == "__main__":
+    main()
